@@ -26,56 +26,57 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.PropertyModel;
 //import org.apache.wicket.request.mapper.parameter.PageParameters;
- 
+
 public class SearchResultsPage extends WebPage {
-    static String indexDir = "target\\index";
-    static String docsDir = "target\\files\\";
+
+    static String indexDir = System.getProperty("user.home") + "\\SearchEngine\\index";
+    static String  docsDir = System.getProperty("user.home") + "\\SearchEngine\\files";
     private static LuceneController lController = new LuceneController(indexDir, docsDir);
-    
+
     public SearchResultsPage(final PageParameters parameters) {
- 
+    
+      
+        lController.refreshIndex();
         try {
             //try {
             String query = "";
-            int i=1;
-            
-            if(parameters.containsKey("query")){
+            int i = 1;
+
+            if (parameters.containsKey("query")) {
                 query = parameters.getString("query");
             }
-            
+
             final Label queryInput = new Label("query", "Results for query: " + query);
             add(queryInput);
-            
+
             List<Document> searchresults = lController.doSearchQuery(query);
+            System.out.println("searching done " + searchresults.size());
             add(new ListView<Document>("searchresults", searchresults) {
                 @Override
                 protected void populateItem(ListItem<Document> item) {
-                    item.add(new Label("path", new PropertyModel(item.getModel(), "path")));
-                }			
+                    item.add(new Label("path", item.getModel().getObject().get("path")));
+                }
             });
-            
+
             /*            List<Document> results = lController.doSearchQuery(query);
-            for (Document d : results) {
-            if(i<=10){
-            final Label result = new Label("result" + i, "Result: " + d.get("path"));
-            add(result);
-            }
+             for (Document d : results) {
+             if(i<=10){
+             final Label result = new Label("result" + i, "Result: " + d.get("path"));
+             add(result);
+             }
             
-            }
-            } catch (IOException ex) {
-            Logger.getLogger(SearchResultsPage.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ParseException ex) {
-            Logger.getLogger(SearchResultsPage.class.getName()).log(Level.SEVERE, null, ex);
-            }*/
+             }
+             } catch (IOException ex) {
+             Logger.getLogger(SearchResultsPage.class.getName()).log(Level.SEVERE, null, ex);
+             } catch (ParseException ex) {
+             Logger.getLogger(SearchResultsPage.class.getName()).log(Level.SEVERE, null, ex);
+             }*/
         } catch (IOException ex) {
             Logger.getLogger(SearchResultsPage.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ParseException ex) {
             Logger.getLogger(SearchResultsPage.class.getName()).log(Level.SEVERE, null, ex);
         }
-            
-
 
     }
 }

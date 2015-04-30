@@ -10,6 +10,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.queryparser.classic.ParseException;
 
@@ -19,16 +25,20 @@ import org.apache.lucene.queryparser.classic.ParseException;
  */
 public class GUI {
 
-    static String indexDir = "target\\index";
-    static String docsDir = "target\\files\\";
+    static String indexDir = System.getProperty("user.home") + "\\SearchEngine\\index";
+    static String docsDir = System.getProperty("user.home") + "\\SearchEngine\\files\\";
     private static LuceneController lController = new LuceneController(indexDir, docsDir);
     private static Coordinator coordinator = new Coordinator(docsDir, indexDir);
     private static boolean showMenu = false;
-
-    public static void main(String[] argu) throws InterruptedException, IOException, ParseException {
+    
+    
+    public static void main(String[] argu) throws InterruptedException, IOException, ParseException, Exception {
+        setTrustAllCerts();
+        indexDir=System.getProperty("user.home")+"\\SearchEngine\\index";
+        docsDir=System.getProperty("user.home")+"\\SearchEngine\\files";
         coordinator.addToQueue("http://www.hs-mannheim.de/");
         coordinator.startCrawler(1);
-        Thread.sleep(20000);
+        Thread.sleep(200000);
         coordinator.stopCrawler();
         lController.refreshIndex();
         while(showMenu){
@@ -46,4 +56,34 @@ public class GUI {
         }
 
     }
+    
+    private static void setTrustAllCerts() throws Exception
+{
+	TrustManager[] trustAllCerts = new TrustManager[]{
+		new X509TrustManager() {
+			public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+				return null;
+			}
+			public void checkClientTrusted( java.security.cert.X509Certificate[] certs, String authType ) {	}
+			public void checkServerTrusted( java.security.cert.X509Certificate[] certs, String authType ) {	}
+		}
+	};
+
+	// Install the all-trusting trust manager
+	try {
+		SSLContext sc = SSLContext.getInstance( "SSL" );
+		sc.init( null, trustAllCerts, new java.security.SecureRandom() );
+		HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+		HttpsURLConnection.setDefaultHostnameVerifier( 
+			new HostnameVerifier() {
+				public boolean verify(String urlHostName, SSLSession session) {
+					return true;
+				}
+			});
+	}
+	catch ( Exception e ) {
+		//We can not recover from this exception.
+		e.printStackTrace();
+	}
+}
 }

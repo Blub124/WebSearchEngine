@@ -9,8 +9,11 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Writer;
 import java.net.SocketTimeoutException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import javax.net.ssl.SSLHandshakeException;
+import org.jsoup.Connection;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -100,9 +104,9 @@ public class DefaultCrawler extends Thread implements Crawler {
 
 //---------------------------------------------------------private methods---------------------------------------------------------
     private void crawl(String url, String baseUrl) throws SQLException, IOException {
-       
+
         if (url == null || !url.contains(baseUrl) || url.isEmpty() || url.contains("@") || url.contains(".jpg") || url.contains(".html#") || url.contains(".gif") || url.contains(".png")) {
-           
+
             return; // do nothing
         }
         String docPath = coordinator.getDocPath();
@@ -112,7 +116,6 @@ public class DefaultCrawler extends Thread implements Crawler {
         Document doc = null;
         //get site and ignore HTTP Errors ( 404 etc)
 
-        Writer writer = null;
         //when url contains some documents
         if (url.contains(".pdf")
                 || url.contains(".doc")
@@ -122,12 +125,22 @@ public class DefaultCrawler extends Thread implements Crawler {
             return;
         }
         long start = System.currentTimeMillis();
+        String contentType = null;
         try {
-            doc = Jsoup.connect(url).ignoreHttpErrors(true).timeout(10 * 100).get();
-        } catch (SocketTimeoutException ex) {
-            coordinator.addToQueue(url);
-            return;
-        } catch (java.net.ConnectException ex) {
+            Connection.Response res = Jsoup.connect(url).ignoreHttpErrors(true).ignoreContentType(true).timeout(10 * 100).execute();
+            contentType = res.contentType();
+            if (contentType.contains("pdf")) {
+               //ignore pdf for the moment..
+                return;
+            } else if ((!contentType.contains("text/html") && !contentType.contains("xml")) || contentType == null) {
+                LOGGER.info("Type for URL: " + url + " was not html. Was  " + contentType);
+                return;
+            } else {
+
+                doc = Jsoup.connect(url).ignoreHttpErrors(true).timeout(10 * 100).get();
+            }
+
+        } catch (SocketTimeoutException | java.net.ConnectException ex) {
             coordinator.addToQueue(url);
             return;
         } catch (SSLHandshakeException ex) {
@@ -135,7 +148,9 @@ public class DefaultCrawler extends Thread implements Crawler {
             urls.add(url);
             return;
         } catch (Throwable t) {
-            LOGGER.error("Exception while connecting to " + url, t);
+
+            LOGGER.error("Exception while connecting to " + url + "  " + contentType, t);
+
             urls.add(url);
             return;
 
@@ -173,18 +188,18 @@ public class DefaultCrawler extends Thread implements Crawler {
             if (maxLvl != -1 && lvlCount > maxLvl) {
                 break;
             }
-            if (nextLink.contains(baseUrl)&&!nextLinksIntern.contains(nextLink)) {
+            if (nextLink.contains(baseUrl) && !nextLinksIntern.contains(nextLink)) {
                 nextLinksIntern.add(nextLink);
             } else {
                 String nextBaseUrl = nextLink.replace("http://", "");
                 nextBaseUrl = nextBaseUrl.replace("https://", "");
                 nextBaseUrl = nextBaseUrl.replace("www.", "");
                 nextBaseUrl = nextBaseUrl.split("//")[0];
-                if (!nextLinksExtern.contains(nextBaseUrl)&&!nextBaseUrl.isEmpty()) {
+                if (!nextLinksExtern.contains(nextBaseUrl) && !nextBaseUrl.isEmpty()) {
                     nextLinksExtern.add(nextBaseUrl);
                     //System.out.println("add " + nextBaseUrl);
                 }
-                
+
             }
             insertBackLinkIntoMap(nextLink);
         }
@@ -192,7 +207,7 @@ public class DefaultCrawler extends Thread implements Crawler {
         for (String link : nextLinksIntern) {
             if (!urls.contains(link) && !super.isInterrupted()) {
                 //coordinator.addToQueue(nextLink);
-               
+
                 crawl(link, baseUrl);
             }
         }
