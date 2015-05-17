@@ -17,6 +17,8 @@ package de.hsmannheim.ss15.alr.searchengine;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.document.Document;
@@ -31,13 +33,23 @@ import org.apache.wicket.markup.html.list.ListView;
 public class SearchResultsPage extends WebPage {
 
     static String indexDir = System.getProperty("user.home") + "\\SearchEngine\\index";
-    static String  docsDir = System.getProperty("user.home") + "\\SearchEngine\\files";
+    static String docsDir = System.getProperty("user.home") + "\\SearchEngine\\files";
     private static LuceneController lController = new LuceneController(indexDir, docsDir);
 
     public SearchResultsPage(final PageParameters parameters) {
-    
-      
-        lController.refreshIndex();
+
+        Timer t = new Timer();
+
+        t.schedule(new TimerTask() {
+
+            @Override
+            public void run() {
+                lController.refreshIndex();
+                System.out.println(System.currentTimeMillis());
+            }
+
+        }, 60000, 600000); //Start refreshing the lucene index after 1 min and then every 10 min.
+        
         try {
             //try {
             String query = "";
