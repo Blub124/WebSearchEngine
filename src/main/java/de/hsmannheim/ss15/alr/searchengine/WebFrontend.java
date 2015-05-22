@@ -12,6 +12,13 @@ import org.apache.wicket.protocol.http.WebApplication;
 public class WebFrontend extends WebApplication{
     public WebFrontend(){    
     }
+
+    @Override
+    protected void init() {
+        getRequestCycleSettings().setResponseRequestEncoding("UTF-8"); 
+        getMarkupSettings().setDefaultMarkupEncoding("UTF-8");  //To change body of generated methods, choose Tools | Templates.
+    }
+    
     
     @Override
     public Class getHomePage() {

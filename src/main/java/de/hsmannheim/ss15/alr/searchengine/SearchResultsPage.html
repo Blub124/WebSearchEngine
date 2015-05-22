@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html>
 <!--
 Copyright 2015 Herbe_000.
 
@@ -14,18 +14,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-<html>
-    <body>
-        <h1>SearchResultsPage.html</h1>
-
-        <label wicket:id="query"></label>
-
-        <div id="bd" style="display: table;">
-            <div wicket:id="searchresults" style="display: table-row;">
-                <div style="display: table-cell;"><b>Path: </b></div>
-                <div wicket:id="path" style="display: table-cell;"></div>
-            </div>
+<wicket:panel>
+        
+        <table>
+            <div wicket:id="container">
+            <tr wicket:id="repeating">
+            <div wicket:id="item"></div>
+        </tr>
         </div>
 
-    </body>
-</html>
+    </table>
+
+
+
+
+</wicket:panel>

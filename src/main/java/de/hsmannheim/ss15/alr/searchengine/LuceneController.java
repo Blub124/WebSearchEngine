@@ -17,7 +17,11 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import javax.swing.plaf.basic.BasicTextUI;
+
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -29,6 +33,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.StoredDocument;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -37,6 +42,10 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TotalHitCountCollector;
+import org.apache.lucene.search.highlight.Highlighter;
+import org.apache.lucene.search.highlight.InvalidTokenOffsetsException;
+import org.apache.lucene.search.highlight.QueryScorer;
+import org.apache.lucene.search.highlight.Scorer;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.slf4j.Logger;
@@ -63,7 +72,7 @@ public class LuceneController {
     public void refreshIndex() {
         boolean create = true;
         final Path docDir = Paths.get(docsDir);
-
+        IndexWriter writer = null;
         try {
 
             Directory dir = FSDirectory.open(Paths.get(indexDir));
@@ -79,7 +88,7 @@ public class LuceneController {
             // size to the JVM (eg add -Xmx512m or -Xmx1g):
             //
             // iwc.setRAMBufferSizeMB(256.0);
-            IndexWriter writer = new IndexWriter(dir, iwc);
+            writer = new IndexWriter(dir, iwc);
             indexDocs(writer, docDir);
 
             // NOTE: if you want to maximize search performance,
@@ -92,12 +101,20 @@ public class LuceneController {
             writer.close();
 
         } catch (IOException e) {
-            System.out.println(" caught a " + e.getClass()
-                    + "\n with message: " + e.getMessage());
+            LOGGER.warn("Exception while indexing",e);
+
+        } finally {
+            if (writer != null) {
+                try {
+                    writer.close();
+                } catch (IOException ex) {
+                    java.util.logging.Logger.getLogger(LuceneController.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
         }
     }
 
-    public List<Document>  doSearchQuery(String queryString) throws IOException, ParseException {
+    public List<StoredDocument> doSearchQuery(String queryString) throws IOException, ParseException {
         String field = "contents";
         String queries = null;
         boolean raw = false;
@@ -116,17 +133,25 @@ public class LuceneController {
         QueryParser parser = new QueryParser(field, analyzer);
 
         Query query = parser.parse(queryString);
-        System.out.println("Searching for: " + query.toString(field));
+        
+        Highlighter highlighter = new Highlighter(new QueryScorer(query));
 
         TotalHitCountCollector collector = new TotalHitCountCollector();
         searcher.search(query, collector);
         TopDocs topDocs = searcher.search(query, Math.max(1, collector.getTotalHits()));
-        List<Document> results=new ArrayList<>();
-        for(ScoreDoc scoreDoc:topDocs.scoreDocs){
-            Document doc = searcher.doc(scoreDoc.doc);
+
+        List<StoredDocument> results = new ArrayList<>();
+        for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+            StoredDocument doc = searcher.doc(scoreDoc.doc);
+            try {
+                doc.add(new TextField("highlight", highlighter.getBestFragment(analyzer, "contents", doc.get("contents")), Field.Store.YES));
+            } catch (InvalidTokenOffsetsException ex) {
+                LOGGER.warn("No Highlight found");
+            }
+          
             results.add(doc);
         }
-        
+
         reader.close();
         return results;
 
@@ -197,7 +222,38 @@ public class LuceneController {
             // so that the text of the file is tokenized and indexed, but not stored.
             // Note that FileReader expects the file to be in UTF-8 encoding.
             // If that's not the case searching for special characters will fail.
-            doc.add(new TextField("contents", new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
+
+            List<String> lines = new ArrayList<>();
+            while (reader.ready()) {
+                lines.add(reader.readLine());
+            }
+            if (lines.size() > 0) {
+                String urlLine = lines.remove(0);
+                if (urlLine != null && urlLine.startsWith("URL:")) {
+                    urlLine = urlLine.substring(4);
+                    doc.add(new TextField("URL", urlLine, Field.Store.YES));
+                }
+            }
+            if (lines.size() > 0) {
+                String dataType = lines.remove(0);
+                if (dataType != null && dataType.startsWith("DataType:")) {
+                    dataType = dataType.substring(9);
+                    doc.add(new TextField("DataType", dataType, Field.Store.YES));
+                }
+            }
+            if (lines.size() > 0) {
+                String title = lines.remove(0);
+                if (title != null && title.startsWith("Title:")) {
+                    title = title.substring(6);
+                    doc.add(new TextField("title", title, Field.Store.YES));
+                }
+            }
+            String content = "";
+            for (String s : lines) {
+                content = content + s;
+            }
+            doc.add(new TextField("contents", content, Field.Store.YES));
 
             if (writer.getConfig().getOpenMode() == IndexWriterConfig.OpenMode.CREATE) {
                 // New index, so we just add the document (no old document can be there):
