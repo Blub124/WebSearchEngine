@@ -15,12 +15,8 @@
  */
 package de.hsmannheim.ss15.alr.searchengine;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.queryparser.classic.ParseException;
 
 /**
  *
@@ -28,22 +24,23 @@ import org.apache.lucene.queryparser.classic.ParseException;
  */
 public class HelperClass {
 
-    static String indexDir = System.getProperty("user.home") + "\\SearchEngine\\index";
-    static String docsDir = System.getProperty("user.home") + "\\SearchEngine\\files";
-    private static LuceneController lController = new LuceneController(indexDir, docsDir);
-    static Timer timer;
+    private static String indexDir = System.getProperty("user.home") + "\\SearchEngine\\index";
+    private static String docsDir = System.getProperty("user.home") + "\\SearchEngine\\files";
+    private static LuceneController lController = new DefaultLuceneController(indexDir, docsDir);
+    private static Timer indexTimer;
     
     
     
     static void startIndexRefreshTimer() {
-       if(timer==null){
-            timer=new Timer();
-            timer.schedule(new TimerTask() {
+       if(indexTimer==null){
+            indexTimer=new Timer();
+            indexTimer.schedule(new TimerTask() {
 
             @Override
             public void run() {
                 System.out.println("refreshing index");
                 lController.refreshIndex();
+                System.out.println("index refreshed");
             }
 
         }, 60000, 600000); //Start refreshing the lucene index after 1 min and then every 10 min.

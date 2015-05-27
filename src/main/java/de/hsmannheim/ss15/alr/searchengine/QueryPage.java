@@ -26,8 +26,8 @@ import org.apache.wicket.request.resource.JavaScriptResourceReference;
  */
 public class QueryPage extends WebPage {
 
-    String queryInput;
-    SearchResultsPage panel;
+    private String queryInput;
+    private SearchResultsPage panel;
     private final JavaScriptResourceReference MYPAGE_JS = new JavaScriptResourceReference(QueryPage.class, "bootstrap.js");
     private final CssResourceReference MYPAGE_CSS = new CssResourceReference(QueryPage.class, "bootstrap.css");
     public QueryPage() {

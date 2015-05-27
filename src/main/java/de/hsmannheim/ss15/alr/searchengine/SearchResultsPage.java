@@ -18,17 +18,12 @@ package de.hsmannheim.ss15.alr.searchengine;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.lucene.document.Document;
 import org.apache.lucene.index.StoredDocument;
 import org.apache.lucene.queryparser.classic.ParseException;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -56,7 +51,7 @@ public class SearchResultsPage extends Panel {
             if (query == null || query.isEmpty()) {
                 searchresults = new ArrayList<>();
             } else {
-                searchresults = HelperClass.getlController().doSearchQuery(query);
+                searchresults = HelperClass.getlController().doSearch(query);
 
             }
 
@@ -91,7 +86,7 @@ public class SearchResultsPage extends Panel {
             searchresults = new ArrayList<>();
         } else {
             try {
-                searchresults = HelperClass.getlController().doSearchQuery(query);
+                searchresults = HelperClass.getlController().doSearch(query);
             } catch (IOException ex) {
                 Logger.getLogger(SearchResultsPage.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ParseException ex) {

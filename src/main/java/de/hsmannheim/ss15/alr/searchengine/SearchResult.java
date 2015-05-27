@@ -15,12 +15,9 @@
  */
 package de.hsmannheim.ss15.alr.searchengine;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.link.ExternalLink;
-import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
 
 /**
@@ -28,10 +25,11 @@ import org.apache.wicket.markup.html.panel.Panel;
  * @author Alex
  */
 public class SearchResult extends Panel {
-
+    
+    private DocumentWrapper doc;
     public SearchResult(String id, DocumentWrapper doc) {
         super(id);
-     
+        this.doc=doc;
         add(new ExternalLink("titelLink", doc.getLink(), doc.getTitle()));
         add(new Label("link", doc.link));
         add(new MultiLineLabel("text", doc.getHighlight()).setEscapeModelStrings(false));
