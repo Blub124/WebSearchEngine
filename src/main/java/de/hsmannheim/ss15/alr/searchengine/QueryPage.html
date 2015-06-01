@@ -6,21 +6,40 @@ and open the template in the editor.
 -->
 <html>
     <body>
-        <span wicket:id="message">Message goes here</span>
+        <!--<span wicket:id="message">Message goes here</span>-->
+        <nav class="navbar navbar-default">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button class="navbar-toggle collapsed" data-target="#bs-example-navbar-collapse-2" data-toggle="collapse" type="button">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#">SearchEngine</a>
+                </div>
+                <div id="bs-example-navbar-collapse-2" class="collapse navbar-collapse">
+                    <form class="navbar-form navbar-left" role="search">
+                        <div class="form-group">
+                            <input wicket:id="query" class="form-control" type="text" placeholder="Search">
+                        </div>
+                        <button wicket:id="queryButton" class="btn btn-default" type="submit"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+                        <!--                        <span wicket:id="infoSpan" class="alert alert-info" role="alert">
+                                                    <label wicket:id="infoLabel"></label>
+                                                </span>-->
+                        <span><label wicket:id="infoLabel"></label></span>
+                    </form>
+                </div>
+            </div>
+        </nav>
+        <!--        <div wicket:id="searchbar">
+                    <label>Query</label>: 
+                    <input wicket:id="query" type="text" size="20" />
+                    <input type="button" wicket:id="queryButton" value="TEST"/> 
+                </div>-->
 
-
-
-        <label>Query</label>: 
-        <input wicket:id="query" type="text" size="20" />
-
-        <input type="button" wicket:id="queryButton" value="TEST"/>
-        
-        
-        
         <div wicket:id="results"></div>
-
     </body>
-
 
 
 </html>

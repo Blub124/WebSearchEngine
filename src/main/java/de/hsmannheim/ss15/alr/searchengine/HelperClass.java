@@ -43,7 +43,7 @@ public class HelperClass {
                 System.out.println("index refreshed");
             }
 
-        }, 60000, 600000); //Start refreshing the lucene index after 1 min and then every 10 min.
+        }, 1000, 600000); //Start refreshing the lucene index after 1 min and then every 10 min.
         }
       
 

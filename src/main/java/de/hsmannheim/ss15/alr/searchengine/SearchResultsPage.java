@@ -22,6 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.index.StoredDocument;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.wicket.AttributeModifier;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -62,7 +63,7 @@ public class SearchResultsPage extends Panel {
             }
             listView = new ListView<DocumentWrapper>("repeating", wrapperList) {
                 @Override
-                protected void populateItem(ListItem<DocumentWrapper> item) {
+                protected void populateItem(ListItem<DocumentWrapper> item) {                
                     item.add(new SearchResult("item",item.getModelObject()));
                 }
             };

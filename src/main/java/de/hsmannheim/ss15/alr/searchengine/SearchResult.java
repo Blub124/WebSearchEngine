@@ -15,6 +15,7 @@
  */
 package de.hsmannheim.ss15.alr.searchengine;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -25,14 +26,29 @@ import org.apache.wicket.markup.html.panel.Panel;
  * @author Alex
  */
 public class SearchResult extends Panel {
-    
+
     private DocumentWrapper doc;
+    private ExternalLink titelLink;
+    private Label link;
+    private MultiLineLabel text;
+
     public SearchResult(String id, DocumentWrapper doc) {
         super(id);
-        this.doc=doc;
-        add(new ExternalLink("titelLink", doc.getLink(), doc.getTitle()));
-        add(new Label("link", doc.link));
-        add(new MultiLineLabel("text", doc.getHighlight()).setEscapeModelStrings(false));
+        this.doc = doc;
+        add(titelLink = new ExternalLink("titelLink", doc.getLink(), doc.getTitle()));
+        titelLink.add(new AttributeModifier("style", "font-size: 18px;"));
+        titelLink.setOutputMarkupId(true);
+
+        add(link = new Label("link", doc.link));
+        link.add(new AttributeModifier("style", "font-size: 14px; color: green;"));
+        link.setOutputMarkupId(true);
+
+        add(text = (MultiLineLabel) new MultiLineLabel("text", doc.getHighlight() + " ...").setEscapeModelStrings(false));
+        text.add(new AttributeModifier("style", "font-size: 13px; color: #545454;"));
+        text.setOutputMarkupId(true);
+
+        this.add(new AttributeModifier("style", "padding-left: 5px; padding-bottom: 1%;"));
+        this.setOutputMarkupId(true);
     }
 
 }
