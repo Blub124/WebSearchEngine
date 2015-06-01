@@ -43,7 +43,11 @@ public class SearchResult extends Panel {
         link.add(new AttributeModifier("style", "font-size: 14px; color: green;"));
         link.setOutputMarkupId(true);
 
-        add(text = (MultiLineLabel) new MultiLineLabel("text", doc.getHighlight() + " ...").setEscapeModelStrings(false));
+        String highlight = doc.getHighlight();
+        if (highlight != null && highlight != "") {
+            highlight = highlight + " ...";
+        }
+        add(text = (MultiLineLabel) new MultiLineLabel("text", highlight).setEscapeModelStrings(false));
         text.add(new AttributeModifier("style", "font-size: 13px; color: #545454;"));
         text.setOutputMarkupId(true);
 
